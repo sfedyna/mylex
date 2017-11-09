@@ -6,7 +6,13 @@
     "type": "project",
     "require": {
         "php": ">=7.0.0",
+        "cartalyst/stripe-laravel": "^7.0",
         "fideloper/proxy": "~3.3",
+        "gedmo/doctrine-extensions": "^2.4",
+        "kris/laravel-form-builder": "^1.13",
+        "laravel-doctrine/extensions": "^1.0",
+        "laravel-doctrine/migrations": "1.1.*",
+        "laravel-doctrine/orm": "1.4.*",
         "laravel/framework": "5.5.*",
         "laravel/tinker": "~1.0"
     },
@@ -19,7 +25,9 @@
     "autoload": {
         "classmap": [
             "database/seeds",
-            "database/factories"
+            "database/factories",
+            "app/Entities",
+            "app/Repository"
         ],
         "psr-4": {
             "App\\": "app/"

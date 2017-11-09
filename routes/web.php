@@ -11,6 +11,37 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Auth::routes();
+
+Route::get('/', [
+    'uses' => 'UserController@index',
+    'as' => 'user',
+    'name' => 'user'
+]);
+
+Route::get('/compaign', [
+    'uses' => 'CompaignController@index',
+    'as' => 'compaign',
+    'name' => 'compaign'
+]);
+
+Route::get('campaign/create', [
+    'uses' => 'CompaignController@create',
+    'as' => 'campaign.create'
+]);
+
+Route::post('user/voucher-generate', [
+    'uses' => 'UserController@generateVoucher',
+    'as' => 'voucher.generate'
+]);
+
+Route::post('compaign', [
+    'uses' => 'CompaignController@store',
+    'as' => 'campaign.store'
+]);
+
+Route::post('invite-client', [
+    'uses' => 'UserController@inviteClient',
+    'as' => 'user.invite-client'
+]);
+

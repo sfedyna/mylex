@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\User;
+use Illuminate\Support\Facades\Input;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use App\Entities\InvitedClients;
+use Illuminate\Http\Request;
+use Doctrine\ORM\EntityManagerInterface;
+use Illuminate\Auth\Events\Registered;
 
 class RegisterController extends Controller
 {
@@ -22,21 +27,47 @@ class RegisterController extends Controller
 
     use RegistersUsers;
 
-    /**
-     * Where to redirect users after registration.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/home';
+    protected $em;
 
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(EntityManagerInterface  $em)
     {
+        $this->em = $em;
         $this->middleware('guest');
+    }
+    /**
+     * Where to redirect users after registration.
+     *
+     * @var string
+     */
+    protected $redirectTo = '/';
+
+
+    public function showRegistrationForm()
+    {
+        $email = Input::get('email', false);
+        return view('auth.register', ['email' => $email]);
+    }
+
+
+    public function register(Request $request)
+    {
+        $this->validator($request->all())->validate();
+        $data = $request->all();
+        $data['roles'] = 'ROLE_USER';
+        event(new Registered($user = $this->create($data)));
+        if($obj = $this->em->getRepository(InvitedClients::class)->findOneBy(['emailClient' => $data['email'], 'status' => 0])){
+            $obj->setStatus(1);
+            $this->em->flush();
+        }
+        $this->guard()->login($user);
+
+        return $this->registered($request, $user)
+            ?: redirect($this->redirectPath());
     }
 
     /**
@@ -49,7 +80,7 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:App\Entities\User',
             'password' => 'required|string|min:6|confirmed',
         ]);
     }
@@ -65,6 +96,7 @@ class RegisterController extends Controller
         return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'roles' => $data['roles'],
             'password' => bcrypt($data['password']),
         ]);
     }
